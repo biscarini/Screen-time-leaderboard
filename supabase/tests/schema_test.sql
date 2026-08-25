@@ -31,34 +31,35 @@ select assert((select count(*) from group_members where group_id = :'gid') = 2,
               'the second member joined');
 
 -- ---------------------------------------------------------------------------
--- Week boundaries. 2026-08-22 is a Saturday; that week runs Sun 16 -> Sat 22.
--- All times below are UTC, and New York is UTC-4 in August.
+-- Weeks and the window. The group competes on the week that has FINISHED, and
+-- uploads run Sunday 06:00 -> Monday 22:00 in the group's own timezone.
+-- 2026-08-23 is a Sunday. All times are UTC-4, which is New York in August.
 -- ---------------------------------------------------------------------------
 
-select roll_weeks_at(:'gid', timestamptz '2026-08-19 15:00-04') as w1 \gset
--- (Wednesday)
+-- Sunday 10:00: the window is open for the week that ended yesterday.
+select roll_weeks_at(:'gid', timestamptz '2026-08-23 10:00-04') as w1 \gset
 select assert((select starts_on from weeks where id = :'w1') = date '2026-08-16',
-              'midweek sits in the Sunday-start week');
-select assert((select ends_on   from weeks where id = :'w1') = date '2026-08-22',
-              'the week ends on the Saturday');
+              'the active week is the one that already finished');
+select assert((select ends_on from weeks where id = :'w1') = date '2026-08-22',
+              'that week ended on the Saturday just gone');
 select assert((select status from weeks where id = :'w1') = 'open',
-              'midweek, the week is open');
-select assert(window_open_at(:'gid', timestamptz '2026-08-19 15:00-04') = false,
-              'midweek, the upload window is shut');
+              'during the window the finished week accepts uploads');
 
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 05:59-04') = false,
-              'Saturday 05:59 is before the window');
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 06:00-04') = true,
-              'Saturday 06:00 opens the window');
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 11:59-04') = true,
-              'Saturday 11:59 is still inside the window');
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 12:00-04') = false,
-              'Saturday 12:00 shuts the window');
+select assert(window_open_at(:'gid', timestamptz '2026-08-23 05:59-04') = false,
+              'Sunday 05:59 is before the window');
+select assert(window_open_at(:'gid', timestamptz '2026-08-23 06:00-04') = true,
+              'Sunday 06:00 opens the window');
+select assert(window_open_at(:'gid', timestamptz '2026-08-24 21:59-04') = true,
+              'Monday 21:59 is still inside the window');
+select assert(window_open_at(:'gid', timestamptz '2026-08-24 22:00-04') = false,
+              'Monday 22:00 shuts the window');
+select assert(window_open_at(:'gid', timestamptz '2026-08-26 12:00-04') = false,
+              'midweek there is no window at all');
 
 -- The window is read in the group's timezone, not the server's.
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 08:00+00') = false,
+select assert(window_open_at(:'gid', timestamptz '2026-08-23 08:00+00') = false,
               '08:00 UTC is 04:00 in New York — still shut');
-select assert(window_open_at(:'gid', timestamptz '2026-08-22 14:00+00') = true,
+select assert(window_open_at(:'gid', timestamptz '2026-08-23 14:00+00') = true,
               '14:00 UTC is 10:00 in New York — open');
 
 -- ---------------------------------------------------------------------------
@@ -150,29 +151,37 @@ exception when check_violation then
 end $$;
 
 -- ---------------------------------------------------------------------------
--- Rolling over. Saturday 12:30 closes the week; Sunday opens the next.
+-- Rolling over. Monday 22:00 finalises the week; the next Sunday opens the one
+-- after it, and the week in between is never competed on while it is running.
 -- ---------------------------------------------------------------------------
 
-select roll_weeks_at(:'gid', timestamptz '2026-08-22 12:30-04') as w1b \gset
-select assert(:'w1b' = :'w1', 'after the window, the group is still in the same week');
+select roll_weeks_at(:'gid', timestamptz '2026-08-24 22:30-04') as w1b \gset
+select assert(:'w1b' = :'w1', 'after the window the group is still on the same week');
 select assert((select status from weeks where id = :'w1') = 'closed',
-              'the week closes when the window shuts');
+              'the week finalises when the window shuts');
 select assert((select closed_at is not null from weeks where id = :'w1'),
               'closing stamps closed_at');
 
-select roll_weeks_at(:'gid', timestamptz '2026-08-23 00:30-04') as w2 \gset
--- (Sunday)
-select assert(:'w2' <> :'w1', 'Sunday starts a new week');
+-- Thursday: still the same finished week, still final. Nothing is open.
+select roll_weeks_at(:'gid', timestamptz '2026-08-27 09:00-04') as w1c \gset
+select assert(:'w1c' = :'w1', 'midweek the board still shows the last finished week');
+select assert((select count(*) from weeks
+                where group_id = :'gid' and status = 'open') = 0,
+              'midweek nothing is open — there is nothing to submit yet');
+
+select roll_weeks_at(:'gid', timestamptz '2026-08-30 08:00-04') as w2 \gset
+-- (the next Sunday)
+select assert(:'w2' <> :'w1', 'the next Sunday moves to the next finished week');
 select assert((select starts_on from weeks where id = :'w2') = date '2026-08-23',
-              'the new week starts on the Sunday');
+              'which is the week that ended the day before');
 select assert((select status from weeks where id = :'w2') = 'open',
-              'the new week is open');
+              'and it is open for uploads');
 select assert((select count(*) from weeks
                 where group_id = :'gid' and status = 'open') = 1,
               'only one week is open at a time');
 
 -- A gap in the cron must not leave a stale week open.
-select roll_weeks_at(:'gid', timestamptz '2026-09-09 10:00-04') as w4 \gset
+select roll_weeks_at(:'gid', timestamptz '2026-09-13 08:00-04') as w4 \gset
 select assert((select count(*) from weeks
                 where group_id = :'gid' and status = 'open') = 1,
               'a two-week cron outage still leaves exactly one week open');
@@ -196,12 +205,18 @@ select assert(
     where conname = 'window_must_not_wrap') = 1,
   'the no-wrap window constraint exists');
 
+-- Sunday 18:00 -> Monday 06:00 is a perfectly good window under the new model.
+update groups set opens_dow = 7, opens_hour = 18, closes_dow = 1, closes_hour = 6;
+select assert(true, 'a window may span Sunday evening into Monday morning');
+update groups set opens_dow = 7, opens_hour = 6, closes_dow = 1, closes_hour = 22;
+
+-- Monday -> Sunday would wrap past the week boundary, which is not allowed.
 do $$
 begin
-  update groups set opens_hour = 18, closes_hour = 6;
+  update groups set opens_dow = 1, opens_hour = 6, closes_dow = 7, closes_hour = 22;
   raise exception 'FAILED: a wrapping window was accepted';
 exception when check_violation then
-  raise notice '  ok   a window that closes before it opens is rejected';
+  raise notice '  ok   a window that wraps past the week boundary is rejected';
 end $$;
 
 select assert(roll_group_weeks(:'gid') is not null,

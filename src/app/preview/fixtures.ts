@@ -10,10 +10,10 @@ const GROUP = {
   name: "Sunday League",
   invite_code: "K7MRPQ",
   timezone: "America/New_York",
-  opens_dow: 6,
+  opens_dow: 7,
   opens_hour: 6,
-  closes_dow: 6,
-  closes_hour: 12,
+  closes_dow: 1,
+  closes_hour: 22,
   created_by: "u-jake",
 };
 
@@ -108,17 +108,21 @@ const BASE: GroupData = {
   viewerId: "u-marco",
 };
 
-/** Saturday morning: the window is open and four of five are in. */
+/** Sunday morning: the window is open on a finished week, four of five are in. */
 export const windowOpenData: GroupData = BASE;
 
-/** Midweek: nobody has submitted, last week's table sits below. */
+/** Midweek: the last finished week stands as final, nothing to submit. */
 export const midweekData: GroupData = {
   ...BASE,
   windowOpen: false,
-  history: BASE.history.filter((r) => r.week_id !== THIS_WEEK.id),
+  weeks: [{ ...THIS_WEEK, status: "closed" }, LAST_WEEK, WEEK_TWO_AGO],
+  currentWeek: { ...THIS_WEEK, status: "closed" },
+  history: BASE.history.map((r) =>
+    r.week_id === THIS_WEEK.id ? { ...r, status: "closed" as const } : r,
+  ),
 };
 
-/** After noon on Saturday: final, winner crowned. */
+/** Monday night, the moment the window shuts: final, winner crowned. */
 export const closedData: GroupData = {
   ...BASE,
   windowOpen: false,

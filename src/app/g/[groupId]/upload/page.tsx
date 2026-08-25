@@ -20,9 +20,9 @@ export default async function UploadPage({
         <PageHeader eyebrow="Not yet" title="The window is closed" />
         <p className="card px-4 py-5 text-[16px] text-ink2 leading-relaxed">
           Uploads open {isoDayName(group.opens_dow)} at {formatHour(group.opens_hour)} and
-          close at {formatHour(group.closes_hour)}, {group.timezone.replace(/_/g, " ")}.
-          Everyone screenshots at the same point in the week — that&rsquo;s what keeps the
-          numbers comparable.
+          close {isoDayName(group.closes_dow)} at {formatHour(group.closes_hour)},{" "}
+          {group.timezone.replace(/_/g, " ")} — once the week has actually finished, so
+          everyone&rsquo;s average covers the same seven days.
         </p>
         <Link
           href={`/g/${groupId}`}

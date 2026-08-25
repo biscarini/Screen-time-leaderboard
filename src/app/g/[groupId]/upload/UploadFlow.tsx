@@ -37,6 +37,7 @@ export function UploadFlow({
   const [pickupsAvg, setPickupsAvg] = useState<number | null>(null);
   const [pickupsPath, setPickupsPath] = useState<string>();
   const [addingPickups, setAddingPickups] = useState(false);
+  const [weekScope, setWeekScope] = useState<string>();
   const [hours, setHours] = useState("");
   const [mins, setMins] = useState("");
 
@@ -66,7 +67,9 @@ export function UploadFlow({
     topApps?: TopApp[];
     pickupsTotal?: number | null;
     pickupsDailyAvg?: number | null;
+    weekScope?: string;
   }) {
+    if (result.weekScope) setWeekScope(result.weekScope);
     if (result.topApps?.length) setTopApps(result.topApps.slice(0, 3));
     if (result.pickupsTotal != null) setPickupsTotal(result.pickupsTotal);
     if (result.pickupsDailyAvg != null) setPickupsAvg(result.pickupsDailyAvg);
@@ -191,7 +194,12 @@ export function UploadFlow({
               <span className="eyebrow">Step one</span>
               <p className="text-[17px] text-ink2 max-w-[34ch] leading-relaxed">
                 Open Settings → Screen Time, tap <strong className="text-ink">Week</strong>,
-                and screenshot the top of the report.
+                then tap <strong className="text-ink">‹</strong> to go back to{" "}
+                <strong className="text-ink">Last Week</strong>. Screenshot the top of
+                the report.
+              </p>
+              <p className="font-mono text-[11px] text-ink3 max-w-[36ch] leading-relaxed">
+                A finished week — all seven days counted.
               </p>
               <button
                 type="button"
@@ -233,6 +241,7 @@ export function UploadFlow({
           topApps={topApps}
           pickupsTotal={pickupsTotal}
           pickupsDailyAvg={pickupsAvg}
+          looksLikeCurrentWeek={weekScope === "this_week"}
           saving={stage === "saving"}
           addingPickups={addingPickups}
           onAccept={() => save(detected ?? 0)}

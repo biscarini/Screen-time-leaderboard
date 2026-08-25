@@ -29,7 +29,7 @@ export function LeaderboardView({
     data.weeks.find((w) => w.status === "closed" && w.id !== currentWeek?.id) ?? null;
   const previous = standingsFor(data, previousWeek?.id ?? null);
 
-  const closed = currentWeek?.status === "closed";
+  const closed = currentWeek?.status !== "open";
   const mine = submissionFor(data, currentWeek?.id ?? null, viewerId);
   const stats = groupStats(data);
 
@@ -51,7 +51,7 @@ export function LeaderboardView({
       <header className="flex items-end justify-between gap-4 pt-7 pb-4">
         <div className="flex flex-col gap-1.5">
           <span className="eyebrow">
-            {closed ? "Final" : windowOpen ? "Uploads open" : "This week"}
+            {windowOpen ? "Uploads open" : "Final"}
           </span>
           <h1 className="font-display font-bold text-[26px] leading-[1.1] tracking-[-0.02em]">
             Weekly Screen Time
@@ -79,17 +79,16 @@ export function LeaderboardView({
         signedUrls={signedUrls}
       />
 
-      {!closed && !windowOpen && (
+      {windowOpen ? (
         <p className="pt-4 font-mono text-[11.5px] text-ink3 leading-relaxed">
-          Uploads open {isoDayName(group.opens_dow)} at {formatHour(group.opens_hour)} and
-          close at {formatHour(group.closes_hour)}. Everyone screenshots at the same point
-          in the week — that&rsquo;s what makes the numbers comparable.
+          Uploads close {isoDayName(group.closes_dow)} at{" "}
+          {formatHour(group.closes_hour)}. This week has finished, so everyone&rsquo;s
+          average covers the same seven days.
         </p>
-      )}
-
-      {closed && (
+      ) : (
         <p className="pt-4 font-mono text-[11.5px] text-ink3 leading-relaxed">
-          This week is finished. A fresh one starts Sunday.
+          Final. Uploads reopen {isoDayName(group.opens_dow)} at{" "}
+          {formatHour(group.opens_hour)}, for the week ending the day before.
         </p>
       )}
 

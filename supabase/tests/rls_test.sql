@@ -23,7 +23,7 @@ select create_group('Private', 'America/New_York') as gid \gset
 set test.uid = 'aaaaaaaa-0000-0000-0000-000000000002';
 select join_group((select invite_code from groups where id = :'gid'));
 
-select roll_weeks_at(:'gid', timestamptz '2026-08-22 08:00-04') as wk \gset
+select roll_weeks_at(:'gid', timestamptz '2026-08-23 08:00-04') as wk \gset
 insert into submissions (week_id, user_id, minutes, screenshot_path)
 values (:'wk', 'aaaaaaaa-0000-0000-0000-000000000001', 120, 'x/y/z/1.jpg');
 

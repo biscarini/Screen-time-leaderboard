@@ -16,8 +16,8 @@ export default async function LoginPage() {
           Screen Time Leaderboard
         </h1>
         <p className="text-[17px] text-ink2 leading-relaxed">
-          Lowest average daily screen time wins. Everyone posts their Saturday
-          screenshot, the app reads the number, the group gets ranked.
+          Lowest average daily screen time wins. Every Sunday everyone posts last
+          week&rsquo;s screenshot, the app reads the number, the group gets ranked.
         </p>
       </div>
       <LoginForm />

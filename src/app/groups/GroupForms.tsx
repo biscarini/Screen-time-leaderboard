@@ -72,8 +72,9 @@ export function GroupForms({ hasGroups }: { hasGroups: boolean }) {
           <ErrorNote message={createState.error} />
           <SubmitButton pendingLabel="Creating…">Create group</SubmitButton>
           <p className="font-mono text-[11px] text-ink3 leading-relaxed">
-            Weeks run Sunday to Saturday in {timezone.replace(/_/g, " ")}. Uploads open
-            Saturday 6am–12pm — change it later in settings.
+            Weeks run Sunday to Saturday in {timezone.replace(/_/g, " ")}. You compete on
+            the week just gone, uploading Sunday 6am to Monday 10pm — change it later in
+            settings.
           </p>
         </form>
       )}

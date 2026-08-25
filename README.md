@@ -17,14 +17,16 @@ dashboard.
 
 ## How a week works
 
-The competition week runs **Sunday → Saturday**, matching Apple: the iOS Screen
-Time report uses that boundary, and its *Daily Average* divides by the days
-**elapsed**, not by seven.
+The competition week runs **Sunday → Saturday**, matching Apple, and you
+compete on the week that has **already finished**. In the iOS Screen Time
+report you tap `‹` to page back to *Last Week*, where all seven days are
+counted and the Daily Average is a true 7-day average.
 
-Uploads open **Saturday 06:00–12:00** in the group's timezone. The narrow
-window is the point — at that moment every member's Daily Average covers the
-same complete Sun–Fri set, so the numbers are comparable. It's a per-group
-setting if you want a wider net.
+Uploads open **Sunday 06:00 and close Monday 22:00** in the group's timezone.
+Because everyone reports the same finished week, the numbers are comparable by
+construction and the window doesn't have to be narrow. The vision pass reports
+which week it read, and the confirm screen says so if you shot the week still
+in progress.
 
 Verification is social: the screenshot is stored and any member can tap a row
 to see it. An honor system, with receipts.

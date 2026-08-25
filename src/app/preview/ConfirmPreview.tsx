@@ -10,12 +10,14 @@ export function ConfirmPreview({
   pickupsTotal = null,
   pickupsDailyAvg = null,
   offerPickups = false,
+  looksLikeCurrentWeek = false,
 }: {
   minutes: number;
   topApps?: TopApp[];
   pickupsTotal?: number | null;
   pickupsDailyAvg?: number | null;
   offerPickups?: boolean;
+  looksLikeCurrentWeek?: boolean;
 }) {
   return (
     <ConfirmCard
@@ -23,6 +25,7 @@ export function ConfirmPreview({
       topApps={topApps}
       pickupsTotal={pickupsTotal}
       pickupsDailyAvg={pickupsDailyAvg}
+      looksLikeCurrentWeek={looksLikeCurrentWeek}
       onAccept={() => {}}
       onEdit={() => {}}
       onAddPickups={offerPickups ? () => {} : undefined}

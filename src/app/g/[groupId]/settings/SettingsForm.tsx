@@ -46,7 +46,7 @@ export function SettingsForm({ group }: { group: Group }) {
       </label>
 
       <div className="flex flex-col gap-1.5">
-        <span className="eyebrow">Upload window · Saturday</span>
+        <span className="eyebrow">Upload window · Sunday to Monday</span>
         <div className="flex items-center gap-2">
           <select name="opens_hour" defaultValue={group.opens_hour} className="field flex-1">
             {HOURS.map((h) => (
@@ -61,8 +61,8 @@ export function SettingsForm({ group }: { group: Group }) {
           </select>
         </div>
         <p className="font-mono text-[11px] text-ink3 leading-relaxed">
-          A tight window is what makes the numbers comparable — everyone&rsquo;s Daily
-          Average then covers the same days.
+          Uploads run from Sunday morning to Monday night, once the week has finished.
+          Everyone reports the same seven days, so the window can be generous.
         </p>
       </div>
 

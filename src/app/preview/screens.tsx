@@ -57,8 +57,8 @@ export const SCREENS: Record<
             Screen Time Leaderboard
           </h1>
           <p className="text-[17px] text-ink2 leading-relaxed">
-            Lowest average daily screen time wins. Everyone posts their Saturday
-            screenshot, the app reads the number, the group gets ranked.
+            Lowest average daily screen time wins. Every Sunday everyone posts last
+            week&rsquo;s screenshot, the app reads the number, the group gets ranked.
           </p>
         </div>
         <LoginForm />
@@ -69,7 +69,7 @@ export const SCREENS: Record<
   midweek: {
     title: "Leaderboard · midweek",
     caption:
-      "Nobody has submitted yet, so last week's final table sits below. The screen is never empty.",
+      "Between windows the last finished week stands as final. There is nothing in progress to submit, so nothing to nag about.",
     render: () => (
       <Chrome data={midweekData} tab="board">
         <LeaderboardView data={midweekData} signedUrls={{}} />
@@ -80,7 +80,7 @@ export const SCREENS: Record<
   open: {
     title: "Leaderboard · window open",
     caption:
-      "Saturday morning. Four of five are in, Ryan is holding up the group, and the upload button is stuck to the thumb.",
+      "Sunday morning. The week has finished, four of five are in, Ryan is holding up the group, and the upload button is stuck to the thumb.",
     render: () => (
       <Chrome data={windowOpenData} tab="board">
         <LeaderboardView data={windowOpenData} signedUrls={{}} />
@@ -136,6 +136,18 @@ export const SCREENS: Record<
           &ldquo;Fix it&rdquo; swaps in an hour/minute keypad. A failed read opens straight
           on that keypad instead — never a dead end.
         </p>
+      </Shell>
+    ),
+  },
+
+  "confirm-wrong-week": {
+    title: "Confirm · wrong week",
+    caption:
+      "The vision pass reports which week it read. A report still in progress covers fewer days than everyone else's, so it says so — and still lets you through.",
+    render: () => (
+      <Shell>
+        <PageHeader eyebrow="Your week" title="Upload screenshot" />
+        <ConfirmPreview minutes={97} looksLikeCurrentWeek topApps={[]} />
       </Shell>
     ),
   },
@@ -199,7 +211,7 @@ export const SCREENS: Record<
 
 export const SCREEN_ORDER = [
   "sign-in", "midweek", "open", "closed", "upload", "confirm", "confirm-no-pickups",
-  "profile", "stats", "settings",
+  "confirm-wrong-week", "profile", "stats", "settings",
 ] as const;
 
 export { Link };

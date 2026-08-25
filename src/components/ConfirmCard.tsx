@@ -18,6 +18,7 @@ export function ConfirmCard({
   topApps = [],
   pickupsTotal = null,
   pickupsDailyAvg = null,
+  looksLikeCurrentWeek = false,
   saving = false,
   onAccept,
   onEdit,
@@ -28,6 +29,8 @@ export function ConfirmCard({
   topApps?: TopApp[];
   pickupsTotal?: number | null;
   pickupsDailyAvg?: number | null;
+  /** The report appears to be the week in progress rather than a finished one. */
+  looksLikeCurrentWeek?: boolean;
   saving?: boolean;
   onAccept: () => void;
   onEdit: () => void;
@@ -39,6 +42,15 @@ export function ConfirmCard({
 
   return (
     <div className="flex flex-col gap-5">
+      {looksLikeCurrentWeek && (
+        <p className="rounded-[10px] bg-brassSoft border-l-[3px] border-brass px-4 py-3 text-[15px] leading-snug">
+          This looks like the week in progress, not a finished one. Tap{" "}
+          <strong>‹</strong> in Screen Time to go back to{" "}
+          <strong>Last Week</strong>, then shoot it again — otherwise your average
+          covers fewer days than everyone else&rsquo;s. Submit anyway if you&rsquo;re sure.
+        </p>
+      )}
+
       <div className="card px-6 py-8 flex flex-col items-center gap-1 text-center">
         <span className="eyebrow">Detected screen time</span>
         <span className="font-display font-bold text-[46px] leading-[1.1] tracking-[-0.03em] tnum">

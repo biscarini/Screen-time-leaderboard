@@ -45,7 +45,10 @@ const Extraction = z.object({
 
   week_scope: z
     .enum(["this_week", "last_week", "unknown"])
-    .describe("Whether the header reads as the current week or a past one."),
+    .describe(
+      "Whether the report is showing the week in progress or a finished, earlier one. " +
+        "A header reading 'Last Week', or a chart with all seven days filled in, means last_week.",
+    ),
   device_scope: z
     .enum(["all_devices", "single_device", "unknown"])
     .describe("Whether the report header says All Devices or names one device."),
@@ -59,6 +62,11 @@ You may be given more than one image — the report is taller than a phone
 screen, so people screenshot the top of it and then scroll down and screenshot
 the Pickups card. Treat the images as one report and fill in whatever each one
 shows. A field that appears in none of them stays 0 or empty.
+
+People are asked to page back to the FINISHED week before screenshotting, so
+the report should show all seven days. Report which one you are looking at in
+week_scope — a chart with empty days at the right-hand end is the week in
+progress, not a finished one.
 
 WHAT TO READ
 
@@ -166,6 +174,7 @@ export async function POST(request: Request) {
       topApps: parsed.top_apps.slice(0, 3),
       pickupsTotal: parsed.pickups_total || null,
       pickupsDailyAvg: parsed.pickups_daily_avg || null,
+      weekScope: parsed.week_scope,
       confidence: parsed.confidence,
       extraction: parsed,
     });
