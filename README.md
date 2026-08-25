@@ -46,6 +46,24 @@ cp .env.example .env.local     # fill in the five values
 npm run dev
 ```
 
+### Seeing the UI without a database
+
+Every screen is also rendered from fixtures at **`/preview`** — nine frames,
+each in its own iframe so `position: fixed` behaves the way it does on a phone.
+No Supabase, no auth, no seeding:
+
+```bash
+npm install && npm run dev
+open http://localhost:3000/preview
+```
+
+Individual screens live at `/preview/<screen>`: `sign-in`, `midweek`, `open`,
+`closed`, `upload`, `confirm`, `profile`, `stats`, `settings`. It renders the
+same components the app uses in production — the data-driven screens are split
+into a route (which loads) and a view (which renders), so the preview can never
+drift from the real thing. The route 404s in production unless `ENABLE_PREVIEW`
+is set.
+
 Apply the migrations to a Supabase project in order:
 
 ```bash

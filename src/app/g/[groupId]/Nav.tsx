@@ -9,8 +9,18 @@ const TABS = [
   { slug: "me", label: "You" },
 ];
 
-export function Nav({ groupId, viewerId }: { groupId: string; viewerId: string }) {
-  const pathname = usePathname();
+export function Nav({
+  groupId,
+  viewerId,
+  activePath,
+}: {
+  groupId: string;
+  viewerId: string;
+  /** Overrides the live route — used by /preview to show a chosen tab. */
+  activePath?: string;
+}) {
+  const livePath = usePathname();
+  const pathname = activePath ?? livePath;
   const base = `/g/${groupId}`;
 
   return (

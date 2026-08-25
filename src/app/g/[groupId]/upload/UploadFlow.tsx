@@ -7,6 +7,7 @@ import { submitScreenTime } from "@/lib/actions";
 import { downscale } from "@/lib/image";
 import { formatMinutes } from "@/lib/time";
 import { ErrorNote } from "@/components/ui";
+import { ConfirmCard } from "@/components/ConfirmCard";
 
 type Stage = "pick" | "reading" | "confirm" | "edit" | "saving";
 
@@ -172,33 +173,12 @@ export function UploadFlow({
   if (stage === "confirm" || stage === "saving") {
     return (
       <div className="flex flex-col gap-4">
-        <div className="card px-6 py-8 flex flex-col items-center gap-1 text-center">
-          <span className="eyebrow">Detected screen time</span>
-          <span className="font-display font-bold text-[46px] leading-[1.1] tracking-[-0.03em] tnum">
-            {formatMinutes(detected ?? 0)}
-          </span>
-          <span className="font-mono text-[11px] text-ink3 pb-5">
-            read from &ldquo;Daily Average&rdquo;
-          </span>
-          <div className="flex gap-2.5 w-full">
-            <button
-              type="button"
-              disabled={stage === "saving"}
-              onClick={() => save(detected ?? 0)}
-              className="flex-1 rounded-[10px] bg-ink text-ground py-3 font-display font-semibold text-[14px] disabled:opacity-60"
-            >
-              {stage === "saving" ? "Saving…" : "Looks right"}
-            </button>
-            <button
-              type="button"
-              disabled={stage === "saving"}
-              onClick={() => setStage("edit")}
-              className="flex-1 rounded-[10px] bg-surface2 border border-rule py-3 font-display font-semibold text-[14px] disabled:opacity-60"
-            >
-              Fix it
-            </button>
-          </div>
-        </div>
+        <ConfirmCard
+          minutes={detected ?? 0}
+          saving={stage === "saving"}
+          onAccept={() => save(detected ?? 0)}
+          onEdit={() => setStage("edit")}
+        />
         <ErrorNote message={error} />
       </div>
     );
