@@ -8,6 +8,7 @@ import { downscale } from "@/lib/image";
 import { formatMinutes } from "@/lib/time";
 import { ErrorNote } from "@/components/ui";
 import { ConfirmCard } from "@/components/ConfirmCard";
+import type { TopApp } from "@/lib/types";
 
 type Stage = "pick" | "reading" | "confirm" | "edit" | "saving";
 
@@ -31,8 +32,45 @@ export function UploadFlow({
   const [path, setPath] = useState<string>();
   const [detected, setDetected] = useState<number | null>(null);
   const [extraction, setExtraction] = useState<unknown>(null);
+  const [topApps, setTopApps] = useState<TopApp[]>([]);
+  const [pickupsTotal, setPickupsTotal] = useState<number | null>(null);
+  const [pickupsAvg, setPickupsAvg] = useState<number | null>(null);
+  const [pickupsPath, setPickupsPath] = useState<string>();
+  const [addingPickups, setAddingPickups] = useState(false);
   const [hours, setHours] = useState("");
   const [mins, setMins] = useState("");
+
+  const pickupsInput = useRef<HTMLInputElement>(null);
+
+  async function upload(file: File): Promise<string> {
+    const blob = await downscale(file, 1280, 0.85);
+    const key = `${groupId}/${weekId}/${userId}/${crypto.randomUUID()}.jpg`;
+    const { error: uploadError } = await supabaseBrowser()
+      .storage.from("screenshots")
+      .upload(key, blob, { contentType: "image/jpeg", upsert: true });
+    if (uploadError) throw uploadError;
+    return key;
+  }
+
+  /** One vision call over every screenshot so far — the model merges them. */
+  async function extract(keys: string[]) {
+    const response = await fetch("/api/extract", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paths: keys }),
+    });
+    return response.json();
+  }
+
+  function absorb(result: {
+    topApps?: TopApp[];
+    pickupsTotal?: number | null;
+    pickupsDailyAvg?: number | null;
+  }) {
+    if (result.topApps?.length) setTopApps(result.topApps.slice(0, 3));
+    if (result.pickupsTotal != null) setPickupsTotal(result.pickupsTotal);
+    if (result.pickupsDailyAvg != null) setPickupsAvg(result.pickupsDailyAvg);
+  }
 
   async function onPick(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -43,24 +81,12 @@ export function UploadFlow({
     setPreview(URL.createObjectURL(file));
 
     try {
-      const supabase = supabaseBrowser();
-      const blob = await downscale(file, 1280, 0.85);
-      const key = `${groupId}/${weekId}/${userId}/${crypto.randomUUID()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("screenshots")
-        .upload(key, blob, { contentType: "image/jpeg", upsert: true });
-      if (uploadError) throw uploadError;
+      const key = await upload(file);
       setPath(key);
 
-      const response = await fetch("/api/extract", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ path: key }),
-      });
-      const result = await response.json();
-
+      const result = await extract([key]);
       setExtraction(result.extraction ?? null);
+      absorb(result);
 
       if (result.found && typeof result.minutes === "number") {
         setDetected(result.minutes);
@@ -80,6 +106,31 @@ export function UploadFlow({
     }
   }
 
+  async function onPickPickups(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file || !path) return;
+
+    setError(undefined);
+    setAddingPickups(true);
+    try {
+      const key = await upload(file);
+      setPickupsPath(key);
+
+      const result = await extract([path, key]);
+      setExtraction(result.extraction ?? null);
+      absorb(result);
+
+      if (result.pickupsTotal == null && result.pickupsDailyAvg == null) {
+        setError("Couldn't find the Pickups card in that one. Your screen time is still fine to submit.");
+      }
+    } catch {
+      setError("That screenshot didn't upload. Your screen time is still fine to submit.");
+    } finally {
+      setAddingPickups(false);
+      if (pickupsInput.current) pickupsInput.current.value = "";
+    }
+  }
+
   async function save(minutes: number) {
     if (!path) return;
     if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1440) {
@@ -95,6 +146,10 @@ export function UploadFlow({
       minutes: Math.round(minutes),
       detectedMinutes: detected,
       screenshotPath: path,
+      pickupsScreenshotPath: pickupsPath ?? null,
+      topApps,
+      pickupsTotal,
+      pickupsDailyAvg: pickupsAvg,
       extraction,
     });
 
@@ -175,11 +230,23 @@ export function UploadFlow({
       <div className="flex flex-col gap-4">
         <ConfirmCard
           minutes={detected ?? 0}
+          topApps={topApps}
+          pickupsTotal={pickupsTotal}
+          pickupsDailyAvg={pickupsAvg}
           saving={stage === "saving"}
+          addingPickups={addingPickups}
           onAccept={() => save(detected ?? 0)}
           onEdit={() => setStage("edit")}
+          onAddPickups={() => pickupsInput.current?.click()}
         />
         <ErrorNote message={error} />
+        <input
+          ref={pickupsInput}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onPickPickups}
+        />
       </div>
     );
   }

@@ -89,6 +89,67 @@ select assert((select was_corrected from submissions
               'a corrected reading is marked corrected');
 
 -- ---------------------------------------------------------------------------
+-- The breakdown: top apps and pickups. Context, never ranked on.
+-- ---------------------------------------------------------------------------
+
+update submissions
+   set top_apps = '[{"name":"Instagram","minutes":165},
+                    {"name":"Messages","minutes":110},
+                    {"name":"Google Maps","minutes":57}]'::jsonb,
+       pickups_total = 875,
+       pickups_daily_avg = 125,
+       pickups_screenshot_path = 'a/b/c/pickups.jpg'
+ where user_id = '22222222-2222-2222-2222-222222222222' and week_id = :'w1';
+
+select assert((select jsonb_array_length(top_apps) from submissions
+                where user_id = '22222222-2222-2222-2222-222222222222'
+                  and week_id = :'w1') = 3,
+              'three top apps are stored');
+select assert((select top_apps -> 0 ->> 'name' from submissions
+                where user_id = '22222222-2222-2222-2222-222222222222'
+                  and week_id = :'w1') = 'Instagram',
+              'the top app keeps its position');
+select assert((select pickups_total from week_standings
+                where user_id = '22222222-2222-2222-2222-222222222222'
+                  and week_id = :'w1') = 875,
+              'pickups reach the standings view');
+select assert((select top_apps from member_week_history
+                where user_id = '22222222-2222-2222-2222-222222222222'
+                  and week_id = :'w1') is not null,
+              'top apps reach the history view');
+
+select assert((select top_apps from submissions
+                where user_id = '11111111-1111-1111-1111-111111111111') = '[]'::jsonb,
+              'a submission without a breakdown defaults to an empty list');
+select assert((select pickups_total is null from submissions
+                where user_id = '11111111-1111-1111-1111-111111111111'),
+              'pickups stay null when nobody added the second screenshot');
+
+-- Ranking must ignore everything except minutes.
+select assert((select rank from week_standings
+                where week_id = :'w1'
+                  and user_id = '11111111-1111-1111-1111-111111111111') = 1,
+              'a member with no breakdown still ranks on screen time alone');
+
+do $$
+begin
+  update submissions set top_apps = '[{"a":1},{"b":2},{"c":3},{"d":4}]'::jsonb
+   where user_id = '22222222-2222-2222-2222-222222222222';
+  raise exception 'FAILED: a fourth top app was accepted';
+exception when check_violation then
+  raise notice '  ok   more than three top apps is rejected';
+end $$;
+
+do $$
+begin
+  update submissions set top_apps = '{"not":"an array"}'::jsonb
+   where user_id = '22222222-2222-2222-2222-222222222222';
+  raise exception 'FAILED: a non-array top_apps was accepted';
+exception when check_violation then
+  raise notice '  ok   top_apps must be an array';
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- Rolling over. Saturday 12:30 closes the week; Sunday opens the next.
 -- ---------------------------------------------------------------------------
 

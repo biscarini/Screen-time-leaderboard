@@ -26,6 +26,9 @@ export type Week = {
   status: "open" | "closed";
 };
 
+/** One entry from the report's "Most Used" list. */
+export type TopApp = { name: string; minutes: number };
+
 /** A row of member_week_history. */
 export type HistoryRow = {
   group_id: string;
@@ -36,6 +39,10 @@ export type HistoryRow = {
   user_id: string;
   minutes: number;
   screenshot_path: string;
+  pickups_screenshot_path: string | null;
+  top_apps: TopApp[];
+  pickups_total: number | null;
+  pickups_daily_avg: number | null;
   was_corrected: boolean;
   submitted_at: string;
   rank: number;

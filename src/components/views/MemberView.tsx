@@ -1,5 +1,6 @@
 import { Shell } from "@/components/Shell";
 import { Avatar } from "@/components/Avatar";
+import { AppBreakdown, Pickups } from "@/components/Breakdown";
 import { memberStats } from "@/lib/stats";
 import { delta, formatDelta, formatMinutes, weekShort } from "@/lib/time";
 import type { GroupData, Member } from "@/lib/types";
@@ -58,6 +59,26 @@ export function MemberView({
         </p>
       )}
 
+      {stats.current && stats.current.top_apps.length > 0 && (
+        <div className="pt-8">
+          <AppBreakdown
+            apps={stats.current.top_apps}
+            label={isViewer ? "Where your week went" : "Where the week went"}
+          />
+        </div>
+      )}
+
+      {stats.current &&
+        (stats.current.pickups_total != null ||
+          stats.current.pickups_daily_avg != null) && (
+          <div className="pt-8">
+            <Pickups
+              total={stats.current.pickups_total}
+              dailyAverage={stats.current.pickups_daily_avg}
+            />
+          </div>
+        )}
+
       <section className="pt-9 flex flex-col gap-3">
         <span className="eyebrow">Every week</span>
 
@@ -96,6 +117,11 @@ export function MemberView({
                           >
                             screenshot
                           </a>
+                        )}
+                        {row.pickups_total != null && (
+                          <span className="font-mono text-[11px] text-ink3 tnum">
+                            {row.pickups_total} pickups
+                          </span>
                         )}
                         <span className="font-mono font-medium text-[13.5px] tnum">
                           {formatMinutes(row.minutes)}

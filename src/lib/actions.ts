@@ -81,6 +81,10 @@ export async function submitScreenTime(input: {
   minutes: number;
   detectedMinutes: number | null;
   screenshotPath: string;
+  pickupsScreenshotPath?: string | null;
+  topApps?: { name: string; minutes: number }[];
+  pickupsTotal?: number | null;
+  pickupsDailyAvg?: number | null;
   extraction: unknown;
 }): Promise<ActionState> {
   const supabase = await supabaseServer();
@@ -91,6 +95,21 @@ export async function submitScreenTime(input: {
     return { error: "That doesn't look like a daily average. Try again." };
   }
 
+  // Everything below the daily average is context, not competition — so it is
+  // sanitised and dropped on the floor if it looks wrong, never rejected.
+  const topApps = (input.topApps ?? [])
+    .filter((app) => app.name?.trim() && Number.isFinite(app.minutes))
+    .slice(0, 3)
+    .map((app) => ({
+      name: app.name.trim().slice(0, 60),
+      minutes: Math.max(0, Math.min(10080, Math.round(app.minutes))),
+    }));
+
+  const bounded = (value: number | null | undefined, max: number) =>
+    value != null && Number.isFinite(value) && value > 0
+      ? Math.min(max, Math.round(value))
+      : null;
+
   const { error } = await supabase.from("submissions").upsert(
     {
       week_id: input.weekId,
@@ -98,6 +117,10 @@ export async function submitScreenTime(input: {
       minutes: input.minutes,
       detected_minutes: input.detectedMinutes,
       screenshot_path: input.screenshotPath,
+      pickups_screenshot_path: input.pickupsScreenshotPath ?? null,
+      top_apps: topApps as never,
+      pickups_total: bounded(input.pickupsTotal, 20000),
+      pickups_daily_avg: bounded(input.pickupsDailyAvg, 5000),
       extraction: input.extraction as never,
       updated_at: new Date().toISOString(),
     },

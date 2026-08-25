@@ -118,15 +118,44 @@ export const SCREENS: Record<
   confirm: {
     title: "Confirm",
     caption:
-      "What the vision pass produces. Every value is confirmed by hand — the model is a typing shortcut, not an authority.",
+      "What the vision pass produces: the daily average to confirm, where the time went, and the pickups. Every value is confirmed by hand.",
     render: () => (
       <Shell>
         <PageHeader eyebrow="Your week" title="Upload screenshot" />
-        <ConfirmPreview minutes={134} />
+        <ConfirmPreview
+          minutes={134}
+          topApps={[
+            { name: "Instagram", minutes: 165 },
+            { name: "Messages", minutes: 110 },
+            { name: "Google Maps", minutes: 57 },
+          ]}
+          pickupsTotal={875}
+          pickupsDailyAvg={125}
+        />
         <p className="pt-4 font-mono text-[11.5px] text-ink3 leading-relaxed">
           &ldquo;Fix it&rdquo; swaps in an hour/minute keypad. A failed read opens straight
           on that keypad instead — never a dead end.
         </p>
+      </Shell>
+    ),
+  },
+
+  "confirm-no-pickups": {
+    title: "Confirm · before pickups",
+    caption:
+      "The Pickups card sits further down the report than the Screen Time card, so it takes a second screenshot. Offered, never required.",
+    render: () => (
+      <Shell>
+        <PageHeader eyebrow="Your week" title="Upload screenshot" />
+        <ConfirmPreview
+          minutes={134}
+          topApps={[
+            { name: "Instagram", minutes: 165 },
+            { name: "Messages", minutes: 110 },
+            { name: "Google Maps", minutes: 57 },
+          ]}
+          offerPickups
+        />
       </Shell>
     ),
   },
@@ -169,7 +198,8 @@ export const SCREENS: Record<
 };
 
 export const SCREEN_ORDER = [
-  "sign-in", "midweek", "open", "closed", "upload", "confirm", "profile", "stats", "settings",
+  "sign-in", "midweek", "open", "closed", "upload", "confirm", "confirm-no-pickups",
+  "profile", "stats", "settings",
 ] as const;
 
 export { Link };

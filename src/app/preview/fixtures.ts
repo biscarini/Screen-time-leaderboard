@@ -1,4 +1,4 @@
-import type { GroupData, HistoryRow, Member, Week } from "@/lib/types";
+import type { GroupData, HistoryRow, Member, TopApp, Week } from "@/lib/types";
 
 /**
  * A believable group, for looking at the UI without a database behind it.
@@ -38,6 +38,15 @@ const THIS_WEEK: Week = {
   starts_on: "2026-08-16", ends_on: "2026-08-22", status: "open",
 };
 
+/** Top three apps and pickups, per member, for the current week. */
+const BREAKDOWN: Record<string, { apps: TopApp[]; total: number; avg: number }> = {
+  "u-jake":  { apps: [{ name: "Messages", minutes: 168 }, { name: "Safari", minutes: 143 }, { name: "Spotify", minutes: 96 }], total: 512, avg: 73 },
+  "u-marco": { apps: [{ name: "Instagram", minutes: 165 }, { name: "Messages", minutes: 110 }, { name: "Google Maps", minutes: 57 }], total: 875, avg: 125 },
+  "u-chris": { apps: [{ name: "TikTok", minutes: 340 }, { name: "Messages", minutes: 121 }, { name: "Gmail", minutes: 56 }], total: 1043, avg: 149 },
+  "u-sam":   { apps: [{ name: "YouTube", minutes: 402 }, { name: "Instagram", minutes: 288 }, { name: "Safari", minutes: 61 }], total: 1210, avg: 173 },
+  "u-ryan":  { apps: [], total: 0, avg: 0 },
+};
+
 /** minutes by week, per member — undefined means they didn't submit */
 const MINUTES: Record<string, [number | undefined, number | undefined, number | undefined]> = {
   "u-jake":  [131, 120, 102],
@@ -58,6 +67,10 @@ function buildHistory(weeks: Week[]): HistoryRow[] {
 
     present.forEach(({ member, minutes }, position) => {
       const previous = weekIndex === 0 ? null : MINUTES[member.id][weekIndex - 1] ?? null;
+      const breakdown = BREAKDOWN[member.id];
+      // Older weeks predate the breakdown, which is what real history looks like.
+      const hasBreakdown = weekIndex === 2 && breakdown.apps.length > 0;
+
       rows.push({
         group_id: GROUP.id,
         week_id: week.id,
@@ -67,6 +80,12 @@ function buildHistory(weeks: Week[]): HistoryRow[] {
         user_id: member.id,
         minutes,
         screenshot_path: `${GROUP.id}/${week.id}/${member.id}/shot.jpg`,
+        pickups_screenshot_path: hasBreakdown
+          ? `${GROUP.id}/${week.id}/${member.id}/pickups.jpg`
+          : null,
+        top_apps: hasBreakdown ? breakdown.apps : [],
+        pickups_total: hasBreakdown ? breakdown.total : null,
+        pickups_daily_avg: hasBreakdown ? breakdown.avg : null,
         was_corrected: member.id === "u-marco" && weekIndex === 2,
         submitted_at: `${week.ends_on}T11:12:00Z`,
         rank: position + 1,

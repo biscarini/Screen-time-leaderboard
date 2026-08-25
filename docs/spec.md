@@ -81,7 +81,23 @@ detected_minutes int             -- what the vision pass read, before confirmati
 was_corrected    bool  generated  -- detected is distinct from confirmed
 screenshot_path  text  not null   -- storage key, kept for group transparency
 extraction       jsonb            -- raw model output: confidence, total, week label
+
+top_apps          jsonb not null  -- [{name, minutes}], up to three, descending
+pickups_total     int             -- from the Pickups card
+pickups_daily_avg int             -- the comparable one on a partial week
+pickups_screenshot_path text      -- the second shot, when someone bothered
 ```
+
+**Everything below `minutes` is context, not competition.** The leaderboard
+orders on the daily average alone. A second ranked metric would mean two
+leaderboards and an argument about which one counts — so pickups are tracked,
+stored and shown, and never sorted on.
+
+The breakdown needs a second screenshot: the Pickups card sits below the fold
+of the Screen Time report, so people shoot the top, scroll, and shoot again.
+Both images go to the model in **one** call and it merges them, which is why
+`/api/extract` takes `paths[]` rather than a path. The second shot is optional
+and a submission is complete without it.
 
 Three deliberate choices:
 
