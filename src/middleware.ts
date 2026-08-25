@@ -1,7 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { missingEnv } from "@/lib/env";
 
 export async function middleware(request: NextRequest) {
+  // Without Supabase credentials every route would throw. Send the whole app
+  // to one page that names what is missing instead.
+  if (missingEnv().length > 0) {
+    if (request.nextUrl.pathname === "/setup") return NextResponse.next();
+    return NextResponse.rewrite(new URL("/setup", request.url));
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
