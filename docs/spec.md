@@ -28,22 +28,30 @@ Two consequences shape the entire data model:
    submission window *is* the fairness mechanism — not the week boundary.
 
 So: a week is scored on a partial week, and that's fine, as long as the window
-is narrow. The default window is **Friday 18:00 → Saturday 12:00 group-local**,
-as described in the brief.
+is narrow. The default window is **Saturday 06:00 → 12:00 group-local**.
 
-> **One flag worth raising:** that window spans Friday night, which is the
-> single most screen-heavy stretch of most weeks. A late submitter carries a
-> Friday night that an early submitter doesn't. If the group ever argues about
-> it, tighten the window to **Saturday 08:00–12:00** — then everyone is
-> averaging the same complete Sun–Fri set. It's a per-group setting
-> (`groups.opens_dow/opens_hour/closes_dow/closes_hour`), so this is a config
-> change, not a migration. Shipping with the brief's wider window because
-> participation matters more than precision in a group of friends.
+Saturday morning rather than Friday evening, and narrow rather than generous,
+for one reason: at that point every member's Daily Average covers the same
+complete Sun–Fri set, plus a few quiet morning hours. A Friday-evening-to-
+Saturday-noon window would have spanned Friday night — the most screen-heavy
+stretch of most weeks — so a late submitter would carry a Friday night that an
+early submitter didn't. Consistency is the whole point of having a window.
+
+It stays a per-group setting (`groups.opens_hour` / `closes_hour`), editable in
+group settings, so a group that wants a wider net can have one.
 
 Weeks open and close on a **server cron**, never on a client. The job runs
 hourly, and for each group whose local window has just ended it closes the open
 week and opens the next one. Hourly ticks cover every timezone without any
 per-group scheduling.
+
+The logic lives in Postgres (`roll_weeks_at`), not the app, and it is
+idempotent — so every page load calls it too. If the cron misses an hour, or a
+day, the next person to open the leaderboard repairs the group. The function
+comes in a tested pair: an internal `roll_weeks_at(group, timestamptz)` that
+does the work against a supplied clock, and a public `roll_group_weeks(group)`
+wrapper that supplies `now()`. Only the wrapper is granted to clients, so
+nobody can roll a group's weeks at a time of their choosing.
 
 ---
 

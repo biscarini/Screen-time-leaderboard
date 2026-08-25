@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ground: #edeff3;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --sunken: #e3e7ee;
+  --ink: #131824;
+  --ink-2: #4a5266;
+  --ink-3: #798296;
+  --rule: #d7dce5;
+  --rule-soft: #e6eaf1;
+  --brass: #9c6f16;
+  --brass-ink: #7a5610;
+  --brass-soft: #f2e6c9;
+  --down: #1b7a52;
+  --down-soft: #dcefe5;
+  --up: #a9452c;
+  --up-soft: #f6e3dd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0d1017;
+    --surface: #161b26;
+    --surface-2: #1c2230;
+    --sunken: #11151e;
+    --ink: #e8ebf2;
+    --ink-2: #a7afc1;
+    --ink-3: #727b8f;
+    --rule: #2a3140;
+    --rule-soft: #222836;
+    --brass: #dcab43;
+    --brass-ink: #e7be68;
+    --brass-soft: #372e15;
+    --down: #4fc08c;
+    --down-soft: #16301f;
+    --up: #e3805f;
+    --up-soft: #331c16;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #0d1017;
+  --surface: #161b26;
+  --surface-2: #1c2230;
+  --sunken: #11151e;
+  --ink: #e8ebf2;
+  --ink-2: #a7afc1;
+  --ink-3: #727b8f;
+  --rule: #2a3140;
+  --rule-soft: #222836;
+  --brass: #dcab43;
+  --brass-ink: #e7be68;
+  --brass-soft: #372e15;
+  --down: #4fc08c;
+  --down-soft: #16301f;
+  --up: #e3805f;
+  --up-soft: #331c16;
+}
+
+html {
+  background: var(--ground);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-body), Georgia, serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Digits that line up in columns. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+}
+
+/* Inputs inherit the palette so they don't flash white in dark mode. */
+.field {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 13px 14px;
+  color: var(--ink);
+  font-family: var(--font-body), Georgia, serif;
+  font-size: 16px; /* 16px stops iOS Safari zooming on focus */
+}
+.field::placeholder {
+  color: var(--ink-3);
+}
+.field:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 1px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
